@@ -123,8 +123,20 @@ def main():
     print("✅ Dot file processed: ", dot_output)
 
     print("🖼️ Exporting graph images...")
-    subprocess.run(["dot", "-Tpng", dot_output, "-o", os.path.join(out, "deps_cleaned.png")])
-    subprocess.run(["dot", "-Tsvg", dot_output, "-o", os.path.join(out, "deps_cleaned.svg")])
+
+    if getattr(sys, 'frozen', False):
+        dot_exe = os.path.join(sys._MEIPASS, 'graphviz', 'bin', 'dot.exe')
+    else:
+        dot_exe = shutil.which("dot") or "dot"  # fallback
+
+    if not os.path.exists(dot_exe):
+        print("❌ Could not find Graphviz dot executable.")
+        print("💡 Install Graphviz or bundle it in /graphviz/bin/")
+        sys.exit(1)
+
+    subprocess.run([dot_exe, "-Tpng", dot_output, "-o", os.path.join(out, "deps_cleaned.png")], check=True)
+    subprocess.run([dot_exe, "-Tsvg", dot_output, "-o", os.path.join(out, "deps_cleaned.svg")], check=True)
+
 
     if args.web:
         print("🌐 Launching web visualization...")

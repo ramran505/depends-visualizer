@@ -19,7 +19,10 @@ for root, _, files in os.walk(dist_dir):
 a = Analysis(
     ['depends_visualize.py'],
     pathex=[],
-    binaries=[],
+    binaries=[
+        (os.path.join(project_dir, "graphviz", "bin", "dot.exe"), "graphviz/bin"),
+        *[(os.path.join(project_dir, "graphviz", "bin", dll), "graphviz/bin") for dll in os.listdir(os.path.join(project_dir, "graphviz", "bin")) if dll.endswith(".dll")],
+    ],
     datas=[
         # ✅ Include Depends JAR
         (os.path.join(project_dir, "depends.jar"), "."),
