@@ -45,8 +45,7 @@ jobs:
           fi
           echo "✅ Graphviz directory listing:"
           find graphviz
-        shell: bash
-
+          
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install graphviz
