@@ -51,9 +51,9 @@ jobs:
             mv "$INNER_DIR"/* graphviz/
             rm -rf "$INNER_DIR"
           fi
-
-    echo "✅ Graphviz directory listing:"
-    find graphviz
+          
+          echo "✅ Graphviz directory listing:"
+          find graphviz
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
