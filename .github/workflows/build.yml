@@ -39,21 +39,27 @@ jobs:
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
             unzip -q gv.zip -d gv-temp
+            echo "🧾 Contents after unzip:"
+            find gv-temp
             INNER_DIR=$(find gv-temp -type d -name "Graphviz*" | head -n 1)
             echo "Graphviz extracted to: $INNER_DIR"
             mv "$INNER_DIR"/* graphviz/
             rm -rf gv-temp gv.zip
+
           else
             curl -L -o gv.tar.gz https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz
             mkdir gv-temp
             tar -xzf gv.tar.gz -C gv-temp
+            echo "🧾 Contents after extract:"
+            find gv-temp
             INNER_DIR=$(find gv-temp -type d -name "graphviz*" | head -n 1)
             echo "Graphviz extracted to: $INNER_DIR"
             mv "$INNER_DIR"/* graphviz/
             rm -rf gv-temp gv.tar.gz
           fi
 
-          echo "✅ Graphviz installation complete"
+          echo "✅ Graphviz moved to ./graphviz"
+          find graphviz
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
