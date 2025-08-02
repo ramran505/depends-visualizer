@@ -12,6 +12,7 @@ import webbrowser
 from pathlib import Path
 import threading
 import tempfile
+import runpy  # ✅ added for running embedded convert_dot_ids.py
 
 # === Detect bundle context ===
 def resource_path(relative_path):
@@ -30,7 +31,7 @@ def extract_temp_file(path_in_bundle):
 
 # === CONFIGURATION ===
 DEPENDSPATH = extract_temp_file("depends.jar")
-CONVERTER_SCRIPT = extract_temp_file("convert_dot_ids.py")
+CONVERTER_SCRIPT = resource_path("convert_dot_ids.py")  # Don't extract this one – we use runpy
 VISUALIZER_DIR = resource_path("dep-visualizer/dist")  # React build output folder
 VISUALIZER_PORT = 5173
 DEFAULT_DOT_NAME = "deps_cleaned.dot"
@@ -74,8 +75,6 @@ def run_visualizer_server(directory, port):
         print(f"🧪 React visualizer server started at http://localhost:{port}")
         httpd.serve_forever()
 
-
-
 # === MAIN ===
 def main():
     parser = argparse.ArgumentParser(description="Depends + DOT visualizer CLI")
@@ -110,7 +109,17 @@ def main():
     dot_output = str(Path(out) / DEFAULT_DOT_NAME)
 
     print("🧹 Converting DOT file...")
-    subprocess.run([sys.executable, CONVERTER_SCRIPT, dot_input, dot_output, "--lang", lang], check=True)
+
+    # ✅ Replace subprocess with runpy for embedded Python script
+    sys.argv = ['convert_dot_ids.py', str(dot_input), dot_output, '--lang', lang]
+
+    if getattr(sys, 'frozen', False):
+        script_path = os.path.join(sys._MEIPASS, 'convert_dot_ids.py')
+    else:
+        script_path = os.path.join(os.path.dirname(__file__), 'convert_dot_ids.py')
+
+    runpy.run_path(script_path, run_name="__main__")
+
     print("✅ Dot file processed: ", dot_output)
 
     print("🖼️ Exporting graph images...")

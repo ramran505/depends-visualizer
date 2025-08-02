@@ -5,22 +5,30 @@ from pathlib import Path
 
 project_dir = os.path.abspath(".")
 
-# Collect all files in dep-visualizer/dist
+# Collect all files in dep-visualizer/dist (React app)
 dist_assets = []
-for root, _, files in os.walk(os.path.join(project_dir, "dep-visualizer", "dist")):
+dist_dir = os.path.join(project_dir, "dep-visualizer", "dist")
+for root, _, files in os.walk(dist_dir):
     for f in files:
         full_path = os.path.join(root, f)
-        rel_path = os.path.relpath(full_path, project_dir)
-        dist_assets.append((full_path, os.path.join("dep-visualizer", "dist", os.path.relpath(full_path, os.path.join(project_dir, "dep-visualizer", "dist")))))
+        relative_path_in_dist = os.path.relpath(full_path, dist_dir)
+        dist_assets.append(
+            (full_path, os.path.join("dep-visualizer", "dist", relative_path_in_dist))
+        )
 
 a = Analysis(
     ['depends_visualize.py'],
     pathex=[],
     binaries=[],
     datas=[
-        (os.path.join(project_dir, "depends.jar"), "."),  # will be extracted into _MEIPASS root
-        (os.path.join(project_dir, "convert_dot_ids.py"), "."),  # also in root
-        *dist_assets  # React app
+        # ✅ Include Depends JAR
+        (os.path.join(project_dir, "depends.jar"), "."),
+
+        # ✅ Include Python script to run via runpy
+        (os.path.join(project_dir, "convert_dot_ids.py"), "."),
+
+        # ✅ Include all React assets
+        *dist_assets
     ],
     hiddenimports=[],
     hookspath=[],
@@ -47,7 +55,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=True,  # show terminal window (good for CLI tools)
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
