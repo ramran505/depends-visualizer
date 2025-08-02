@@ -106,16 +106,13 @@ jobs:
       - name: 🛠️ Build with PyInstaller
         run: pyinstaller depends_visualize.spec --noconfirm
 
-      - name: 🧐 Verify Graphviz setup before PyInstaller
+      - name: 🧐 Verify Graphviz
         run: |
-          echo "Verifying Graphviz..."
-          ls -R graphviz
+          echo "Checking Graphviz..."
+          ls -R graphviz/bin
           if [[ ! -f graphviz/bin/dot && ! -f graphviz/bin/dot.exe ]]; then
-            echo "❌ 'dot' not found inside graphviz/bin/"
+            echo "❌ dot not found"
             exit 1
-          else
-            echo "✅ 'dot' found:"
-            ls graphviz/bin/dot*
           fi
         shell: bash
 
