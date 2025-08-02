@@ -32,7 +32,7 @@ jobs:
         run: pyinstaller depends_visualize.spec
 
       - name: 📤 Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: depends_visualize-${{ matrix.os }}
           path: app/dist/depends_visualize*
