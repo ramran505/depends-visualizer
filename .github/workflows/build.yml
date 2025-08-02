@@ -31,23 +31,19 @@ jobs:
       - name: 📦 Install Graphviz (platform-specific)
         shell: bash
         run: |
-          echo "Installing Graphviz for ${{ matrix.os }}..."
           mkdir -p graphviz
 
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
-            unzip gv.zip
-            INNER_DIR=$(find . -type d -name "Graphviz*" | head -n 1)
-            mv "$INNER_DIR"/* graphviz/
+          # Download and extract Graphviz
+          echo "Installing Graphviz for ubuntu-latest..."
+          curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
 
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            brew install graphviz  # You may also consider `sudo port install graphviz` if using MacPorts
-            # Or skip this if not bundling for mac
+          # Find the unpacked directory (e.g., graphviz-13.1.1)
+          EXTRACTED_DIR=$(find . -maxdepth 1 -type d -name "graphviz*" ! -name "graphviz" | head -n 1)
 
-          else
-            curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
-            GRAPHVIZ_DIR=$(find . -type d -name 'graphviz*' | head -n 1)
-            mv "$GRAPHVIZ_DIR"/* graphviz/
+          # Only move if source and destination are different
+          if [[ "$EXTRACTED_DIR" != "./graphviz" ]]; then
+            mv "$EXTRACTED_DIR"/* graphviz/
+            rm -rf "$EXTRACTED_DIR"
           fi
 
       - name: 🍎 Install Graphviz (macOS)
