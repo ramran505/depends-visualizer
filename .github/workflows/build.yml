@@ -81,8 +81,7 @@ jobs:
           fi
 
 
-      - name: 🧱 Install Node.js & Build dep-visualizer
-        working-directory: app/dep-visualizer
+      - name: 🧱 Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
@@ -90,11 +89,12 @@ jobs:
 
       - name: 📦 Install Node dependencies
         working-directory: app/dep-visualizer
-        run: npm ci  # or `bun install` if you're using bun
+        run: npm ci
 
       - name: 🛠️ Build React App
         working-directory: app/dep-visualizer
-        run: npm run build  # or `bun run build`
+        run: npm run build
+
 
       - name: 🛠️ Build with PyInstaller
         run: pyinstaller depends_visualize.spec --noconfirm
