@@ -98,15 +98,20 @@ jobs:
             rm -rf "$EXTRACTED"
           fi
 
-
-      - name: 🥖 Install Bun
+      # ----------------- Setup Bun -----------------
+      - name: 🧰 Install Bun
+        shell: bash
         run: |
           curl -fsSL https://bun.sh/install | bash
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
-      - name: 📦 Install JS dependencies with Bun
+      # ----------------- Build dep-visualizer -----------------
+      - name: ⚙️ Build dep-visualizer with Bun
         working-directory: app/dep-visualizer
-        run: bun install
+        shell: bash
+        run: |
+          bun install
+          bun run build
 
       - name: 🛠️ Build dep-visualizer
         working-directory: app/dep-visualizer
