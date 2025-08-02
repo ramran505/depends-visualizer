@@ -1,0 +1,38 @@
+name: Build Depends Visualizer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    defaults:
+      run:
+        working-directory: app
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Install dependencies
+        run: pip install pyinstaller
+
+      - name: 🛠️ Build executable
+        run: pyinstaller depends_visualize.spec
+
+      - name: 📤 Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: depends_visualize-${{ matrix.os }}
+          path: app/dist/depends_visualize*
