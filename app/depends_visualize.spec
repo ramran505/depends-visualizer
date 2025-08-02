@@ -5,7 +5,13 @@ a = Analysis(
     ['depends_visualize.py'],
     pathex=[],
     binaries=[],
-    datas=[('depends.jar', '.'), ('convert_dot_ids.py', '.'), ('dep-visualizer/dist', 'dep-visualizer/dist'), ('openjdk', 'openjdk'), ('graphviz', 'graphviz')],
+    datas=[
+        (os.path.join(project_dir, 'graphviz'), 'graphviz'),
+        (os.path.join(project_dir, 'openjdk'), 'openjdk'),
+        (os.path.join(project_dir, 'convert_dot_ids.py'), '.'),
+        (os.path.join(project_dir, 'depends.jar'), '.'),
+        (os.path.join(project_dir, 'dep-visualizer', 'dist'), os.path.join('dep-visualizer', 'dist'))
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

@@ -32,34 +32,20 @@ jobs:
         shell: bash
         run: |
           echo "Installing Graphviz..."
-          rm -rf graphviz
           mkdir -p graphviz
-
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            echo "Installing Graphviz for Windows..."
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
             unzip -q gv.zip
-            EXTRACTED=$(find . -maxdepth 1 -type d -iname "Graphviz*" | head -n 1)
-            if [[ "$EXTRACTED" != "./graphviz" ]]; then
-              shopt -s dotglob
-              mv "$EXTRACTED"/* graphviz/
-              rm -rf "$EXTRACTED"
-            fi
-
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
-            echo "Installing Graphviz for macOS..."
-            brew install graphviz
-
-          else
-            echo "Installing Graphviz for Linux..."
+            INNER_DIR=$(find . -type d -name "Graphviz*" | head -n 1)
+            mv "$INNER_DIR"/* graphviz/
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
-            EXTRACTED=$(find . -maxdepth 1 -type d -iname "graphviz*" | head -n 1)
-            if [[ "$EXTRACTED" != "./graphviz" ]]; then
-              shopt -s dotglob
-              mv "$EXTRACTED"/* graphviz/
-              rm -rf "$EXTRACTED"
-            fi
+            INNER_DIR=$(find . -type d -name "graphviz*" | head -n 1)
+            mv "$INNER_DIR"/* graphviz/
           fi
+          echo "✅ Graphviz directory listing:"
+          find graphviz
+        shell: bash
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
@@ -119,6 +105,19 @@ jobs:
 
       - name: 🛠️ Build with PyInstaller
         run: pyinstaller depends_visualize.spec --noconfirm
+
+      - name: 🧐 Verify Graphviz setup before PyInstaller
+        run: |
+          echo "Verifying Graphviz..."
+          ls -R graphviz
+          if [[ ! -f graphviz/bin/dot && ! -f graphviz/bin/dot.exe ]]; then
+            echo "❌ 'dot' not found inside graphviz/bin/"
+            exit 1
+          else
+            echo "✅ 'dot' found:"
+            ls graphviz/bin/dot*
+          fi
+        shell: bash
 
       - name: 📄 Show dist contents
         if: matrix.os == 'windows-latest'
