@@ -98,25 +98,24 @@ jobs:
             rm -rf "$EXTRACTED"
           fi
 
-      # ----------------- Setup Bun -----------------
-      - name: 🧰 Install Bun
-        shell: bash
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+      - name: 🧰 Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
 
-      # ----------------- Build dep-visualizer -----------------
+      - name: 🔧 Add Bun to Windows PATH manually
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bunPath = "$env:USERPROFILE\.bun\bin"
+          echo "Bun installed in $bunPath"
+          echo "$bunPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
       - name: ⚙️ Build dep-visualizer with Bun
         working-directory: app/dep-visualizer
-        shell: bash
         run: |
           bun install
           bun run build
-
-      - name: 🛠️ Build dep-visualizer
-        working-directory: app/dep-visualizer
-        run: bun run build
-
 
       - name: 🛠️ Build with PyInstaller
         run: pyinstaller depends_visualize.spec --noconfirm
