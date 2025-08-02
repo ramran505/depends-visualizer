@@ -35,19 +35,28 @@ jobs:
           rm -rf graphviz
           mkdir -p graphviz
 
-          # Download + extract
-          curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
-          unzip -q gv.zip
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            echo "Installing Graphviz for Windows..."
+            curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
+            unzip -q gv.zip
+            EXTRACTED_DIR=$(find . -maxdepth 1 -type d -iname "Graphviz*" | head -n1)
+            echo "Graphviz extracted to: $EXTRACTED_DIR"
+            shopt -s dotglob
+            mv "$EXTRACTED_DIR"/* graphviz/
+            rm -rf "$EXTRACTED_DIR"
 
-          # Find extracted dir (like Graphviz-13.1.1-win64)
-          EXTRACTED_DIR=$(find . -maxdepth 1 -type d -iname "Graphviz*" | head -n1)
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            echo "Installing Graphviz for Linux..."
+            curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
+            EXTRACTED_DIR=$(find . -maxdepth 1 -type d -iname "graphviz*" | head -n1)
+            echo "Graphviz extracted to: $EXTRACTED_DIR"
+            shopt -s dotglob
+            mv "$EXTRACTED_DIR"/* graphviz/
+            rm -rf "$EXTRACTED_DIR"
+          fi
 
-          echo "Graphviz extracted to: $EXTRACTED_DIR"
-
-          # Move contents into ./graphviz
-          shopt -s dotglob  # include hidden files
-          mv "$EXTRACTED_DIR"/* graphviz/
-          rm -rf "$EXTRACTED_DIR"
+          echo "✅ Graphviz directory listing:"
+          ls -R graphviz
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
