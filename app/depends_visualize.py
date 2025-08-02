@@ -12,7 +12,8 @@ import webbrowser
 from pathlib import Path
 import threading
 import tempfile
-import runpy  # ✅ for running embedded convert_dot_ids.py
+import runpy
+import platform  # ✅ added to detect OS
 
 # === Detect bundle context ===
 def resource_path(relative_path):
@@ -56,7 +57,8 @@ def run_visualizer_server(directory, port):
             return super().end_headers()
 
         def do_GET(self):
-            if self.path.startswith("/?dot=") or self.path == "/" or self.path.startswith("/index.html"):
+            self.path = self.path.rstrip("/")  # Prevent index.html/
+            if self.path in ["/", "/index.html"] or self.path.startswith("/?dot=") or self.path.startswith("/index.html?"):
                 self.path = "/index.html"
             return super().do_GET()
 
@@ -105,8 +107,7 @@ def main():
     dot_input = dot_files[0]
     dot_output = str(Path(out) / DEFAULT_DOT_NAME)
 
-    print("🧹 Converting DOT file...")
-
+    print("🧺 Converting DOT file...")
     sys.argv = ['convert_dot_ids.py', str(dot_input), dot_output, '--lang', lang]
     script_path = os.path.join(sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__), 'convert_dot_ids.py')
     runpy.run_path(script_path, run_name="__main__")
@@ -115,7 +116,7 @@ def main():
     print("🖼️ Exporting graph images...")
 
     # Setup dot and plugin path
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, 'frozen', False) and platform.system() == "Windows":
         dot_exe = os.path.join(sys._MEIPASS, 'graphviz', 'bin', 'dot.exe')
         plugin_path = os.path.join(sys._MEIPASS, 'graphviz', 'bin')
     else:
@@ -127,7 +128,6 @@ def main():
         print("💡 Install Graphviz or bundle it in /graphviz/bin/")
         sys.exit(1)
 
-    # Pass environment variable for plugin path
     env = os.environ.copy()
     if plugin_path:
         env["GRAPHVIZ_DOT_PLUGIN_PATH"] = plugin_path
@@ -137,7 +137,6 @@ def main():
 
     if args.web:
         print("🌐 Launching web visualization...")
-
         threading.Thread(target=run_visualizer_server, args=(out, args.port), daemon=True).start()
         threading.Thread(target=run_visualizer_server, args=(VISUALIZER_DIR, VISUALIZER_PORT), daemon=True).start()
 
@@ -148,7 +147,7 @@ def main():
         time.sleep(1)
         webbrowser.open(visualizer_url)
 
-        print("🕸️ Press Ctrl+C to stop the servers and exit.")
+        print("🔸 Press Ctrl+C to stop the servers and exit.")
         try:
             while True:
                 time.sleep(1)
