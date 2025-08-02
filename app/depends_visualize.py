@@ -12,7 +12,7 @@ import webbrowser
 from pathlib import Path
 import threading
 import tempfile
-import runpy  # ✅ added for running embedded convert_dot_ids.py
+import runpy  # ✅ for running embedded convert_dot_ids.py
 
 # === Detect bundle context ===
 def resource_path(relative_path):
@@ -21,9 +21,6 @@ def resource_path(relative_path):
     return os.path.join(os.path.dirname(__file__), relative_path)
 
 def extract_temp_file(path_in_bundle):
-    """
-    Copies a bundled file to a real temp path so external processes (e.g., Java) can access it.
-    """
     src = resource_path(path_in_bundle)
     dst = os.path.join(tempfile.gettempdir(), os.path.basename(path_in_bundle))
     shutil.copyfile(src, dst)
@@ -31,8 +28,8 @@ def extract_temp_file(path_in_bundle):
 
 # === CONFIGURATION ===
 DEPENDSPATH = extract_temp_file("depends.jar")
-CONVERTER_SCRIPT = resource_path("convert_dot_ids.py")  # Don't extract this one – we use runpy
-VISUALIZER_DIR = resource_path("dep-visualizer/dist")  # React build output folder
+CONVERTER_SCRIPT = resource_path("convert_dot_ids.py")
+VISUALIZER_DIR = resource_path("dep-visualizer/dist")
 VISUALIZER_PORT = 5173
 DEFAULT_DOT_NAME = "deps_cleaned.dot"
 
@@ -60,7 +57,7 @@ def run_visualizer_server(directory, port):
 
         def do_GET(self):
             if self.path.startswith("/?dot=") or self.path == "/" or self.path.startswith("/index.html"):
-                self.path = "/index.html"  # Always serve index.html for SPA
+                self.path = "/index.html"
             return super().do_GET()
 
         def translate_path(self, path):
@@ -110,41 +107,38 @@ def main():
 
     print("🧹 Converting DOT file...")
 
-    # ✅ Replace subprocess with runpy for embedded Python script
     sys.argv = ['convert_dot_ids.py', str(dot_input), dot_output, '--lang', lang]
-
-    if getattr(sys, 'frozen', False):
-        script_path = os.path.join(sys._MEIPASS, 'convert_dot_ids.py')
-    else:
-        script_path = os.path.join(os.path.dirname(__file__), 'convert_dot_ids.py')
-
+    script_path = os.path.join(sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(__file__), 'convert_dot_ids.py')
     runpy.run_path(script_path, run_name="__main__")
 
     print("✅ Dot file processed: ", dot_output)
-
     print("🖼️ Exporting graph images...")
 
+    # Setup dot and plugin path
     if getattr(sys, 'frozen', False):
         dot_exe = os.path.join(sys._MEIPASS, 'graphviz', 'bin', 'dot.exe')
+        plugin_path = os.path.join(sys._MEIPASS, 'graphviz', 'bin')
     else:
-        dot_exe = shutil.which("dot") or "dot"  # fallback
+        dot_exe = shutil.which("dot") or "dot"
+        plugin_path = None
 
     if not os.path.exists(dot_exe):
         print("❌ Could not find Graphviz dot executable.")
         print("💡 Install Graphviz or bundle it in /graphviz/bin/")
         sys.exit(1)
 
-    subprocess.run([dot_exe, "-Tpng", dot_output, "-o", os.path.join(out, "deps_cleaned.png")], check=True)
-    subprocess.run([dot_exe, "-Tsvg", dot_output, "-o", os.path.join(out, "deps_cleaned.svg")], check=True)
+    # Pass environment variable for plugin path
+    env = os.environ.copy()
+    if plugin_path:
+        env["GRAPHVIZ_DOT_PLUGIN_PATH"] = plugin_path
 
+    subprocess.run([dot_exe, "-Tpng", dot_output, "-o", os.path.join(out, "deps_cleaned.png")], check=True, env=env)
+    subprocess.run([dot_exe, "-Tsvg", dot_output, "-o", os.path.join(out, "deps_cleaned.svg")], check=True, env=env)
 
     if args.web:
         print("🌐 Launching web visualization...")
 
-        # Serve output folder (DOT file)
         threading.Thread(target=run_visualizer_server, args=(out, args.port), daemon=True).start()
-
-        # Serve static React app
         threading.Thread(target=run_visualizer_server, args=(VISUALIZER_DIR, VISUALIZER_PORT), daemon=True).start()
 
         dot_url = f"http://localhost:{args.port}/{DEFAULT_DOT_NAME}"
