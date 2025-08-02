@@ -56,16 +56,28 @@ jobs:
         run: |
           mkdir -p openjdk
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            curl -L -o jdk.zip https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_windows_hotspot_21.0.8_9.zip
+            curl -L -o jdk.zip "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_windows_hotspot_21.0.8_9.zip"
             unzip jdk.zip
-            mv OpenJDK*/openjdk*/* openjdk/
+            EXTRACTED_JDK=$(find . -type d -name "jdk-*" | head -n 1)
+            if [[ "$EXTRACTED_JDK" != "./openjdk" ]]; then
+              mv "$EXTRACTED_JDK"/* openjdk/
+            fi
+
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            curl -L https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_mac_hotspot_21.0.8_9.tar.gz | tar xz
-            find . -type d -name 'jdk-*' | head -n1 | xargs -I{} mv {}/jdk*/* openjdk/
-          else
-            curl -L https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.8_9.tar.gz | tar xz
-            find . -type d -name 'jdk-*' | head -n1 | xargs -I{} mv {}/jdk*/* openjdk/
+            curl -L "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_mac_hotspot_21.0.8_9.tar.gz" | tar xz
+            EXTRACTED_JDK=$(find . -type d -name "jdk-*" | head -n 1)
+            if [[ "$EXTRACTED_JDK" != "./openjdk" ]]; then
+              mv "$EXTRACTED_JDK"/* openjdk/
+            fi
+
+          else  # ubuntu-latest
+            curl -L "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.8_9.tar.gz" | tar xz
+            EXTRACTED_JDK=$(find . -type d -name "jdk-*" | head -n 1)
+            if [[ "$EXTRACTED_JDK" != "./openjdk" ]]; then
+              mv "$EXTRACTED_JDK"/* openjdk/
+            fi
           fi
+
 
       - name: 📦 Install Node.js
         uses: actions/setup-node@v3
