@@ -77,19 +77,18 @@ jobs:
           fi
 
 
-      - name: 🧱 Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
+      - name: 🥖 Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
-      - name: 📦 Install Node dependencies
+      - name: 📦 Install JS dependencies with Bun
         working-directory: app/dep-visualizer
-        run: npm ci
+        run: bun install
 
-      - name: 🛠️ Build React App
+      - name: 🛠️ Build dep-visualizer
         working-directory: app/dep-visualizer
-        run: npm run build
+        run: bun run build
 
 
       - name: 🛠️ Build with PyInstaller
