@@ -7,3 +7,6 @@ graphviz-windows
 output
 depends.log
 app/openjdk
+graphviz
+depends_visualize.exe
+depends_visualize

@@ -25,15 +25,61 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 📦 Install dependencies
+      - name: 📦 Install Python deps
         run: pip install pyinstaller
 
-      - name: 🛠️ Build executable
-        run: pyinstaller depends_visualize.spec
+      - name: ⬇️ Download & extract Graphviz
+        if: matrix.os != 'macos-latest'
+        run: |
+          mkdir -p graphviz
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
+            unzip gv.zip
+            mv Graphviz*/graphviz*/* graphviz/
+          else
+            curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
+            find . -type d -name 'graphviz-*' | head -n1 | xargs -I{} mv {}/graphviz*/* graphviz/
+          fi
+
+      - name: 🍎 Install Graphviz (macOS)
+        if: matrix.os == 'macos-latest'
+        run: sudo port install graphviz
+
+      - name: ⬇️ Download & extract OpenJDK
+        run: |
+          mkdir -p openjdk
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            curl -L -o jdk.zip https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_windows_hotspot_21.0.8_9.zip
+            unzip jdk.zip
+            mv OpenJDK*/openjdk*/* openjdk/
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            curl -L https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_mac_hotspot_21.0.8_9.tar.gz | tar xz
+            find . -type d -name 'jdk-*' | head -n1 | xargs -I{} mv {}/jdk*/* openjdk/
+          else
+            curl -L https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.8_9.tar.gz | tar xz
+            find . -type d -name 'jdk-*' | head -n1 | xargs -I{} mv {}/jdk*/* openjdk/
+          fi
+
+      - name: 📦 Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: app/dep-visualizer/package-lock.json
+
+      - name: 📦 Install frontend deps & build
+        run: |
+          cd dep-visualizer
+          npm ci
+          npm run build
+          cd ..
+
+      - name: 🛠️ Build with PyInstaller
+        run: pyinstaller depends_visualize.spec --noconfirm
 
       - name: 📄 Show dist contents
-        run: dir dist
         if: matrix.os == 'windows-latest'
+        run: dir dist
 
       - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
