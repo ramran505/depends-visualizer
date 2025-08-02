@@ -1,18 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
 
-project_dir = os.path.abspath(os.path.dirname(__file__))
 
 a = Analysis(
     ['depends_visualize.py'],
     pathex=[],
     binaries=[],
     datas=[
-        (os.path.join(project_dir, 'graphviz'), 'graphviz'),
-        (os.path.join(project_dir, 'openjdk'), 'openjdk'),
-        (os.path.join(project_dir, 'depends.jar'), 'depends.jar'),
-        (os.path.join(project_dir, 'convert_dot_ids.py'), 'convert_dot_ids.py'),
-        (os.path.join(project_dir, 'dep-visualizer', 'dist'), 'dep-visualizer/dist')
+        ('depends.jar', '.'), ('convert_dot_ids.py', '.'), ('dep-visualizer/dist', 'dep-visualizer/dist'), ('openjdk', 'openjdk'), ('graphviz', 'graphviz')
     ],
     hiddenimports=[],
     hookspath=[],
