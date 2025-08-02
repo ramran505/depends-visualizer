@@ -32,30 +32,28 @@ jobs:
         shell: bash
         run: |
           echo "Installing Graphviz..."
-
-          # 🔄 Clean install
-          rm -rf graphviz
+          rm -rf graphviz  # 🔥 clean previous
           mkdir -p graphviz
 
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            echo "Installing Graphviz for Windows..."
             curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
             unzip -q gv.zip
-            INNER_DIR=$(find . -type d -name "Graphviz*" | head -n 1)
-          else
-            echo "Installing Graphviz for Linux..."
+            INNER_DIR=$(find . -type d -iname "Graphviz*" | head -n 1)
+            echo "Graphviz extracted to: $INNER_DIR"
+            shopt -s dotglob
+            mv "$INNER_DIR"/* graphviz/
+            rm -rf "$INNER_DIR"
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
-            INNER_DIR=$(find . -type d -name "graphviz*" -not -path "./graphviz" | head -n 1)
-          fi
-
-          # ✅ Move only if source != target
-          if [[ "$INNER_DIR" != "./graphviz" ]]; then
+            INNER_DIR=$(find . -type d -iname "graphviz*" | head -n 1)
+            echo "Graphviz extracted to: $INNER_DIR"
+            shopt -s dotglob
             mv "$INNER_DIR"/* graphviz/
             rm -rf "$INNER_DIR"
           fi
 
-          echo "✅ Graphviz directory listing:"
-          find graphviz
+    echo "✅ Graphviz directory listing:"
+    find graphviz
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
