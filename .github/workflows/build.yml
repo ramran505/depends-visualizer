@@ -65,30 +65,37 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: brew install graphviz
 
-      - name: ⬇️ Download & extract OpenJDK
+      - name: ☕ Install OpenJDK
+        shell: bash
         run: |
+          echo "Installing OpenJDK..."
+          rm -rf openjdk
           mkdir -p openjdk
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "Installing OpenJDK for Windows..."
             curl -L -o jdk.zip "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_windows_hotspot_21.0.8_9.zip"
-            unzip jdk.zip
-            EXTRACTED_JDK=$(find . -type d -name "jdk-*" | head -n 1)
-            if [[ "$EXTRACTED_JDK" != "./openjdk" ]]; then
-              mv "$EXTRACTED_JDK"/* openjdk/
-            fi
+            unzip -q jdk.zip
+            EXTRACTED=$(find . -maxdepth 1 -type d -iname "jdk-*" | head -n 1)
+            shopt -s dotglob
+            mv "$EXTRACTED"/* openjdk/
+            rm -rf "$EXTRACTED"
 
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "Installing OpenJDK for macOS..."
             curl -L "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_mac_hotspot_21.0.8_9.tar.gz" | tar xz
-            EXTRACTED_JDK=$(find . -type d -name "jdk-*" | head -n 1)
-            if [[ "$EXTRACTED_JDK" != "./openjdk" ]]; then
-              mv "$EXTRACTED_JDK"/* openjdk/
-            fi
+            EXTRACTED=$(find . -maxdepth 1 -type d -iname "jdk-*" | head -n 1)
+            shopt -s dotglob
+            mv "$EXTRACTED"/* openjdk/
+            rm -rf "$EXTRACTED"
 
-          else  # ubuntu-latest
+          else
+            echo "Installing OpenJDK for Linux..."
             curl -L "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.8%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.8_9.tar.gz" | tar xz
-            EXTRACTED_JDK=$(find . -type d -name "jdk-*" | head -n 1)
-            if [[ "$EXTRACTED_JDK" != "./openjdk" ]]; then
-              mv "$EXTRACTED_JDK"/* openjdk/
-            fi
+            EXTRACTED=$(find . -maxdepth 1 -type d -iname "jdk-*" | head -n 1)
+            shopt -s dotglob
+            mv "$EXTRACTED"/* openjdk/
+            rm -rf "$EXTRACTED"
           fi
 
 
