@@ -30,31 +30,42 @@ jobs:
 
       - name: 📥 Install Graphviz
         run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+          echo "Installing Graphviz..."
+
+          mkdir -p graphviz
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
             echo "Installing Graphviz for Windows..."
             curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
-            unzip gv.zip
-            mkdir -p graphviz
-            INNER_DIR=$(find . -type d -name "Graphviz*" | head -n 1)
+            unzip -q gv.zip
+            INNER_DIR=$(find . -type d -iname "Graphviz*" | head -n 1)
             if [ -n "$INNER_DIR" ]; then
+              shopt -s dotglob
               mv "$INNER_DIR"/* graphviz/
+              rm -rf "$INNER_DIR"
             fi
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            echo "Installing Graphviz on macOS..."
+
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            echo "Installing Graphviz for macOS..."
+            # macOS runners use Homebrew by default, not MacPorts
+            brew update
             brew install graphviz
+
           else
             echo "Installing Graphviz for Linux..."
             curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
-            mkdir -p graphviz
-            GRAPHVIZ_DIR=$(find . -type d -name 'graphviz*' | head -n 1)
+            GRAPHVIZ_DIR=$(find . -maxdepth 1 -type d -iname "graphviz*" | head -n 1)
             if [ -n "$GRAPHVIZ_DIR" ]; then
+              shopt -s dotglob
               mv "$GRAPHVIZ_DIR"/* graphviz/
+              rm -rf "$GRAPHVIZ_DIR"
             fi
           fi
 
+
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
-        run: sudo port install graphviz
+        run: brew install graphviz
 
       - name: ⬇️ Download & extract OpenJDK
         run: |
