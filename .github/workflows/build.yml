@@ -28,25 +28,27 @@ jobs:
       - name: 📦 Install Python deps
         run: pip install pyinstaller
 
-      - name: ⬇️ Download & extract Graphviz
-        if: matrix.os != 'macos-latest'
+      - name: 📦 Install Graphviz (platform-specific)
+        shell: bash
         run: |
+          echo "Installing Graphviz for ${{ matrix.os }}..."
           mkdir -p graphviz
+
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
             unzip gv.zip
-            EXTRACTED_DIR=$(find . -type d -name "Graphviz*" | head -n 1)
-            if [[ "$EXTRACTED_DIR" != "./graphviz" ]]; then
-              mv "$EXTRACTED_DIR"/* graphviz/
-            fi
+            INNER_DIR=$(find . -type d -name "Graphviz*" | head -n 1)
+            mv "$INNER_DIR"/* graphviz/
+
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            brew install graphviz  # You may also consider `sudo port install graphviz` if using MacPorts
+            # Or skip this if not bundling for mac
+
           else
             curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
-            EXTRACTED_DIR=$(find . -type d -name 'graphviz*' | head -n 1)
-            if [[ "$EXTRACTED_DIR" != "./graphviz" ]]; then
-              mv "$EXTRACTED_DIR"/* graphviz/
-            fi
+            GRAPHVIZ_DIR=$(find . -type d -name 'graphviz*' | head -n 1)
+            mv "$GRAPHVIZ_DIR"/* graphviz/
           fi
-
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
@@ -79,19 +81,20 @@ jobs:
           fi
 
 
-      - name: 📦 Install Node.js
+      - name: 🧱 Install Node.js & Build dep-visualizer
+        working-directory: app/dep-visualizer
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'npm'
-          cache-dependency-path: app/dep-visualizer/package-lock.json
 
-      - name: 📦 Install frontend deps & build
-        run: |
-          cd dep-visualizer
-          npm ci
-          npm run build
-          cd ..
+      - name: 📦 Install Node dependencies
+        working-directory: app/dep-visualizer
+        run: npm ci  # or `bun install` if you're using bun
+
+      - name: 🛠️ Build React App
+        working-directory: app/dep-visualizer
+        run: npm run build  # or `bun run build`
 
       - name: 🛠️ Build with PyInstaller
         run: pyinstaller depends_visualize.spec --noconfirm
