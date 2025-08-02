@@ -1,6 +1,5 @@
 depends_visualize.jar
 depends_visualizer.pyz
 depends_visualize
-app/depends.jar
 *.pkg
 /build/
