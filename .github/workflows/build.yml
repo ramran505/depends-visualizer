@@ -29,38 +29,47 @@ jobs:
         run: pip install pyinstaller
 
       - name: 🧩 Install Graphviz
+        if: matrix.os != 'macos-latest'
         shell: bash
         run: |
           echo "Installing Graphviz..."
-              rm -rf graphviz
-              mkdir -p graphviz
+          rm -rf graphviz
+          mkdir -p graphviz
 
-              if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-                echo "Installing Graphviz for Windows..."
-                curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
-                unzip -q gv.zip
-                EXTRACTED_DIR=$(find . -maxdepth 1 -type d -iname "Graphviz*" | head -n1)
-                echo "Graphviz extracted to: $EXTRACTED_DIR"
-                shopt -s dotglob
-                mv "$EXTRACTED_DIR"/* graphviz/
-                rm -rf "$EXTRACTED_DIR" gv.zip
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            curl -L -o gv.zip https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/windows_10_cmake_Release_Graphviz-13.1.1-win64.zip
+            unzip -q gv.zip -d gv-temp
+            INNER_DIR=$(find gv-temp -type d -name "Graphviz*" | head -n 1)
+            echo "Graphviz extracted to: $INNER_DIR"
+            mv "$INNER_DIR"/* graphviz/
+            rm -rf gv-temp gv.zip
+          else
+            curl -L -o gv.tar.gz https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz
+            mkdir gv-temp
+            tar -xzf gv.tar.gz -C gv-temp
+            INNER_DIR=$(find gv-temp -type d -name "graphviz*" | head -n 1)
+            echo "Graphviz extracted to: $INNER_DIR"
+            mv "$INNER_DIR"/* graphviz/
+            rm -rf gv-temp gv.tar.gz
+          fi
 
-              elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-                echo "Installing Graphviz for Linux..."
-                curl -L https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/13.1.1/graphviz-13.1.1.tar.gz | tar xz
-                EXTRACTED_DIR=$(find . -maxdepth 1 -type d -iname "graphviz*" | head -n1)
-                echo "Graphviz extracted to: $EXTRACTED_DIR"
-                shopt -s dotglob
-                mv "$EXTRACTED_DIR"/* graphviz/
-                rm -rf "$EXTRACTED_DIR"
-              fi
-
-              echo "✅ Graphviz directory listing:"
-              ls -R graphviz
+          echo "✅ Graphviz installation complete"
 
       - name: 🍎 Install Graphviz (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install graphviz
+
+      - name: 🧐 Verify Graphviz
+        shell: bash
+        run: |
+          echo "Checking for dot binary..."
+          ls -R graphviz || true
+          if [[ ! -f graphviz/bin/dot && ! -f graphviz/bin/dot.exe ]]; then
+            echo "❌ 'dot' binary NOT FOUND in graphviz/bin/"
+            exit 1
+          else
+            echo "✅ dot found"
+          fi
 
       - name: ☕ Install OpenJDK
         shell: bash
