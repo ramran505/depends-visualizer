@@ -42,7 +42,7 @@ cd app/dep-visualizer
 bun install
 ```
 
-## Create a build folder
+## 📂 Create a build folder
 
 From the `app/dep-visualizer` folder:
 
