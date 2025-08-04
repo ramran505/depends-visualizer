@@ -1,138 +1,123 @@
-# 🕸️ depends-visualizer
+# 📊 depends-visualizer
 
-**Visualize code dependencies in seconds — no setup required.**  
-A self-contained tool that runs [Depends](https://github.com/multilang-depends/depends), cleans up the results, and opens an interactive browser-based graph for exploring your code’s structure.
+> Analyze and visualize code dependencies using [Depends](https://github.com/multilang-depends/depends), Graphviz, and a modern web-based interface.
 
 ---
 
-## 🚀 One-Step Usage
+## 🧩 What It Does
 
-Just run:
+`depends-visualizer` is a Python-powered CLI tool that:
+- Runs the Depends analysis engine on a codebase (Java, C/C++, Python, Ruby)
+- Cleans up the output `.dot` file with human-readable labels
+- Optionally renders dependency graphs to `.png`/`.svg` using Graphviz
+- Launches a beautiful interactive web UI to explore the dependencies visually
+
+---
+
+## 🚀 Quick Start
+
+### ✅ Prerequisites
+
+Make sure the following are installed **on your system**:
+
+| Tool         | Version | Install |
+|--------------|---------|---------|
+| Python       | 3.7+    | https://python.org |
+| Java         | 8+      | https://adoptium.net or https://openjdk.org |
+| Graphviz     | any     | https://graphviz.org/download |
+| Node.js      | 16+     | https://nodejs.org |
+| npm          | 6+      | included with Node |
+| Bun          | latest  | https://bun.sh |
+
+> ⚠️ If you bundle Java or Graphviz locally (e.g., inside the repo), no global installation is needed.
+
+---
+
+### 📦 Install Node Dependencies
+
+From the root of the repo:
 
 ```bash
-depends_visualize java example-projects/java-project output-java --web
+cd dep-visualizer
+bun install
 ```
 
-✅ Works on Windows, macOS, and Linux  
-✅ No installation required  
-✅ No config needed  
-✅ Interactive web-based graph viewer auto-launches
-
-> The `depends_visualize` executable bundles everything: Depends engine, DOT processor, static visualizer, and file server.
-
 ---
 
-## 🧠 What It Does
+## 📂 How to Use
 
-1. **Analyzes source code** with [`depends`](https://github.com/multilang-depends/depends)
-2. **Generates a dependency graph** in Graphviz `.dot` format
-3. **Cleans node IDs** for readable filenames and structures
-4. **Serves an interactive viewer** (React + Cytoscape)
-5. **Opens your browser** to explore the graph instantly
-
----
-
-## 💡 Example
+From the `app/` folder:
 
 ```bash
-depends_visualize java example-projects/java-project output-java --web
+python3 depends_visualize.py <language> <src> <output-dir> [--web] [--port <port>]
+```
+
+### Arguments
+
+| Name        | Description                                       |
+|-------------|---------------------------------------------------|
+| `language`  | One of: `java`, `cpp`, `python`, `ruby`, `c`     |
+| `src`       | Path to your source code directory                |
+| `output-dir`| Output directory for `.dot`, `.svg`, `.png`, etc. |
+| `--web`     | Launch local browser-based interactive visualizer |
+| `--port`    | (Optional) Custom port for serving the `.dot` file (default: `8000`) |
+
+---
+
+### 🧪 Example
+
+```bash
+python3 depends_visualize.py java ../example-projects/demo-java output-java --web
 ```
 
 This will:
-- Analyze the Java code in `example-projects/java-project`
-- Generate output in `output-java/`
-- Launch a local server and open your browser to view the graph
+1. Run Depends on `demo-java`
+2. Convert and clean the `.dot` file
+3. Export a `.png` and `.svg` of the dependency graph
+4. Launch the interactive visualizer in your browser
 
 ---
 
-## 🖥️ Alternative: Run as JAR
+## 🖥️ Visual Output
 
-If you only have Java and want to run via `.jar`:
+- **`deps_cleaned.dot`**: Cleaned DOT file
+- **`deps_cleaned.svg/png`**: Exported images
+- **Interactive UI**: http://localhost:5173
 
-```bash
-java -jar depends_visualize.jar java example-projects/java-project output-java --web
+---
+
+## 🔧 Developer Notes
+
+- You can bundle this into a `.exe` with [PyInstaller](https://pyinstaller.org/) (includes Java, Graphviz, etc.)
+- The visualizer React app is prebuilt in `dep-visualizer/dist/`
+- Uses a CORS-enabled static server to serve `.dot` and assets
+
+---
+
+## 📁 Project Structure
+
+```
+app/
+├── depends_visualize.py      # Main CLI tool
+├── convert_dot_ids.py        # Cleans up Depends output
+├── depends.jar               # Depends core analyzer
+├── graphviz/ (optional)      # Bundled Graphviz (for PyInstaller)
+├── openjdk/ (optional)       # Bundled Java (for PyInstaller)
+├── dep-visualizer/
+│   ├── dist/                 # Built React UI
+│   └── ...                   # Source code
 ```
 
-This version does the same thing — just requires Java 8+ installed.
+---
+
+## 🧹 Troubleshooting
+
+- `dot: command not found`: Install Graphviz or bundle it
+- `java: not found`: Install Java or bundle OpenJDK
+- Output is blank? Make sure the `.dot` file is valid or try using `--detail --auto-include` in the Depends command
 
 ---
 
-## 🧩 Supported Languages
+## 📜 License
 
-All languages supported by **Depends**:
-
-- Java
-- Python
-- JavaScript
-- Ruby
-- C/C++
-- C#
-- More (as supported by [multilang-depends](https://github.com/multilang-depends/depends))
-
-Just change the first argument in the command:
-
-```bash
-depends_visualize python my-python-project output-python --web
-```
-
----
-
-## 📁 Output Folder
-
-After running, your output directory (e.g. `output-java`) will include:
-
-| File | Description |
-|------|-------------|
-| `relations.dot` | Raw DOT graph from Depends |
-| `relations.cleaned.dot` | Human-readable cleaned graph |
-| (optional) `relations.png` | Future enhancement: export to image |
-
----
-
-## 🌐 Visualizer Features
-
-- Interactive graph viewer (Zoom / Pan / Click nodes)
-- Nodes represent files or classes
-- Edges show dependency relationships
-- Fast and responsive even for large graphs
-
----
-
-## 🔧 System Requirements
-
-| Environment | Needed |
-|-------------|--------|
-| Python      | ❌ Not required (bundled) |
-| Java        | ❌ Not required if using bundled version |
-| Browser     | ✅ Required to view the graph (Chrome, Firefox, etc.)
-
-> If using `java -jar`, Java 8+ must be installed manually.
-
----
-
-## 🛠 Dev Mode (Optional)
-
-If you want to modify or build your own:
-
-- `dep-visualizer/` — React-based frontend (uses Cytoscape.js)
-- `convert_dot_ids.py` — Clean DOT file node labels
-- `depends.jar` — Original Depends analyzer
-
----
-
-## 📦 Packaging
-
-This tool is available as:
-
-- ✅ Python CLI (`depends_visualize.py`)
-- ✅ One-file `.exe` (Windows) or `.pyz` (cross-platform)
-- ✅ `.jar` (Java-only usage)
-
-Everything is bundled — no external installs needed.
-
----
-
-## 📄 License
-
-MIT License.  
-Built on top of [Depends](https://github.com/multilang-depends/depends) and other open-source components.
+MIT License. See `LICENSE`.
