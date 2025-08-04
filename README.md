@@ -57,8 +57,11 @@ bun run build
 From the `app/` folder:
 
 ```bash
-python3 depends_visualize.py <language> <src> <output-dir> [--web] [--port <port>]
+python depends_visualize.py <language> <src> <output-dir> [--web] [--port <port>]
 ```
+
+Use `python3` if `python` doesn't work for you.
+
 
 ### Arguments
 
