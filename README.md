@@ -75,7 +75,7 @@ python3 depends_visualize.py <language> <src> <output-dir> [--web] [--port <port
 ### 🧪 Example
 
 ```bash
-python3 depends_visualize.py java ../example-projects/demo-java output-java --web
+python3 depends_visualize.py java ../example-projects/java-project output-java --web
 ```
 
 This will:
