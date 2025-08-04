@@ -78,7 +78,7 @@ Use `python3` if `python` doesn't work for you.
 ### 🧪 Example
 
 ```bash
-python3 depends_visualize.py java ../example-projects/java-project output-java --web
+python depends_visualize.py java ../example-projects/java-project output-java --web
 ```
 
 This will:
