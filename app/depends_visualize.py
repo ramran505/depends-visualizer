@@ -135,7 +135,7 @@ def main():
     dot_output = str(Path(out) / DEFAULT_DOT_NAME)
 
     print("🧹 Converting DOT file...")
-    subprocess.run(["python3", CONVERTER_SCRIPT, dot_input, dot_output, "--lang", lang], check=True)
+    subprocess.run(["python", CONVERTER_SCRIPT, dot_input, dot_output, "--lang", lang], check=True)
     print("✅ Dot file processed successfully.")
 
     print("🖼️ Exporting graph images...")
