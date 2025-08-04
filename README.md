@@ -46,7 +46,7 @@ bun install
 
 From the `app/dep-visualizer` folder:
 
-```
+```bash
 bun run build
 ```
 
