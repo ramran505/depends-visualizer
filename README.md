@@ -33,13 +33,21 @@ Make sure the following are installed **on your system**:
 
 ---
 
-### 📦 Install Node Dependencies
+### 📦 Install Node Dependencies]
 
 From the root of the repo:
 
 ```bash
-cd dep-visualizer
+cd app/dep-visualizer
 bun install
+```
+
+## Create a build folder
+
+From the `app/dep-visualizer` folder:
+
+```
+bun run build
 ```
 
 ---
